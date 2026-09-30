@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.exam.signup.persistence.ActivityMapper">
+
+    <select id="selectForUpdate" resultType="com.exam.signup.persistence.ActivityRow">
+        SELECT id, title, status, total_quota, remaining_quota
+        FROM activity
+        WHERE id = #{id}
+        FOR UPDATE
+    </select>
+
+    <select id="selectById" resultType="com.exam.signup.persistence.ActivityRow">
+        SELECT id, title, status, total_quota, remaining_quota
+        FROM activity
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectRemaining" resultType="java.lang.Integer">
+        SELECT remaining_quota
+        FROM activity
+        WHERE id = #{id}
+    </select>
+
+    <update id="decrementQuota">
+        UPDATE activity
+        SET remaining_quota = remaining_quota - 1
+        WHERE id = #{id}
+          AND status = 'OPEN'
+          AND remaining_quota &gt; 0
+    </update>
+
+    <select id="selectPage" resultType="com.exam.signup.persistence.ActivityRow">
+        SELECT id, title, status, total_quota, remaining_quota
+        FROM activity
+        ORDER BY id ASC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*) FROM activity
+    </select>
+</mapper>

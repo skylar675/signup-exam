@@ -1,0 +1,9 @@
+{
+  "activities": [
+    {"id": 1001, "totalQuota": 5, "remainingQuota": 4},
+    {"id": 1003, "totalQuota": 0, "remainingQuota": 0}
+  ],
+  "registrations": [
+    {"userId": 1101, "activityId": 1001, "requestId": "ok_1", "status": "REGISTERED"}
+  ]
+}

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>限量活动报名</title>
+  <style>
+    :root {
+      --bg: #eef2f5;
+      --card: #ffffff;
+      --ink: #1c2834;
+      --muted: #5d6b7a;
+      --line: #e3e8ee;
+      --accent: #0f6f6a;
+      --accent-ink: #ffffff;
+      --ok: #0d7a45;
+      --ok-bg: #e7f6ee;
+      --err: #9f1239;
+      --err-bg: #fdecef;
+      --closed: #8a5a12;
+      --closed-bg: #fff6e8;
+      --shadow: 0 10px 30px rgba(28, 40, 52, 0.06);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(900px 320px at 10% -10%, #d9efe9 0%, transparent 60%),
+        var(--bg);
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 32px 20px 48px; }
+    header { margin-bottom: 22px; }
+    h1 { margin: 0; font-size: 30px; letter-spacing: -0.02em; }
+    .grid { display: grid; gap: 16px; }
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 18px 18px 8px;
+    }
+    .card h2 { margin: 0; font-size: 18px; }
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: middle; }
+    th { color: var(--muted); font-size: 12px; font-weight: 650; letter-spacing: 0.04em; }
+    tr:last-child td { border-bottom: 0; }
+    .title-cell { font-weight: 650; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-width: 64px;
+      justify-content: center;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .badge.open { color: var(--ok); background: var(--ok-bg); }
+    .badge.closed { color: var(--closed); background: var(--closed-bg); }
+    .quota { min-width: 120px; }
+    .quota b { font-variant-numeric: tabular-nums; }
+    .bar { height: 6px; margin-top: 6px; border-radius: 99px; background: #e8eef3; overflow: hidden; }
+    .bar span { display: block; height: 100%; background: var(--accent); }
+    .form {
+      display: grid;
+      grid-template-columns: 180px 1fr auto auto;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 14px;
+    }
+    label { display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 13px; }
+    input, select, button { font: inherit; }
+    input, select {
+      height: 40px;
+      border: 1px solid #d5dee6;
+      border-radius: 10px;
+      padding: 0 12px;
+      color: var(--ink);
+      background: #fff;
+    }
+    button {
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      padding: 0 14px;
+      cursor: pointer;
+    }
+    button.primary { background: var(--accent); color: var(--accent-ink); }
+    button.ghost { background: #fff; color: var(--ink); border-color: #d5dee6; }
+    button:hover { filter: brightness(0.97); }
+    #status {
+      min-height: 44px;
+      margin: 0 0 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: #f6f8fa;
+      color: var(--muted);
+    }
+    #status.ok { color: var(--ok); background: var(--ok-bg); }
+    #status.err { color: var(--err); background: var(--err-bg); }
+    #result {
+      margin: 0 0 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: #f7f9fb;
+      color: #33414f;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    #result:empty { display: none; }
+    .empty { color: var(--muted); }
+    .mono { font-family: Consolas, "Courier New", monospace; font-size: 13px; }
+    @media (max-width: 800px) {
+      .form { grid-template-columns: 1fr; }
+      .wrap { padding-top: 20px; }
+      table { display: block; overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>限量活动报名</h1>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <div class="card-head">
+          <h2>活动</h2>
+          <button id="reload" class="ghost" type="button">刷新活动</button>
+        </div>
+        <table id="activities">
+          <thead>
+            <tr><th>ID</th><th>标题</th><th>状态</th><th>名额</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>报名</h2>
+        </div>
+        <div class="form">
+          <label>X-User-Id
+            <input id="userId" value="1101" inputmode="numeric" />
+          </label>
+          <label>活动
+            <select id="activityId"></select>
+          </label>
+          <button id="signup" class="primary" type="button">报名</button>
+          <button id="retry" class="ghost" type="button">重试同一次报名</button>
+        </div>
+        <div id="status">选择活动和用户后提交报名。</div>
+        <pre id="result"></pre>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>我的报名</h2>
+          <button id="mine" class="ghost" type="button">查询我的报名</button>
+        </div>
+        <table id="registrations">
+          <thead>
+            <tr><th>报名 ID</th><th>活动 ID</th><th>用户</th><th>requestId</th><th>状态</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    let pending = null;
+
+    function showStatus(text, ok) {
+      const el = document.getElementById("status");
+      el.textContent = text;
+      el.className = ok ? "ok" : "err";
+    }
+
+    function newRequestId() {
+      const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-";
+      let suffix = "";
+      const bytes = new Uint32Array(12);
+      crypto.getRandomValues(bytes);
+      for (const n of bytes) {
+        suffix += alphabet[n % alphabet.length];
+      }
+      return ("req_" + Date.now().toString(36) + "_" + suffix).slice(0, 64);
+    }
+
+    function badge(status) {
+      const span = document.createElement("span");
+      const labels = { OPEN: "开放", CLOSED: "已关闭", REGISTERED: "已报名" };
+      const kind = status === "CLOSED" ? "closed" : "open";
+      span.className = "badge " + kind;
+      span.textContent = labels[status] || status;
+      return span;
+    }
+
+    function quotaCell(remaining, total) {
+      const wrap = document.createElement("div");
+      wrap.className = "quota";
+      const text = document.createElement("div");
+      const strong = document.createElement("b");
+      strong.textContent = String(remaining);
+      text.append("剩余 ", strong, " / 共 " + total);
+      const bar = document.createElement("div");
+      bar.className = "bar";
+      const fill = document.createElement("span");
+      const ratio = total > 0 ? Math.max(0, Math.min(1, remaining / total)) : 0;
+      fill.style.width = (ratio * 100) + "%";
+      bar.appendChild(fill);
+      wrap.append(text, bar);
+      return wrap;
+    }
+
+    async function loadActivities() {
+      const response = await fetch("/api/activities?page=1&size=100");
+      const body = await response.json();
+      if (!response.ok) {
+        showStatus(body.message || "活动列表加载失败", false);
+        return;
+      }
+      const tbody = document.querySelector("#activities tbody");
+      const select = document.getElementById("activityId");
+      const selected = select.value;
+      tbody.innerHTML = "";
+      select.innerHTML = "";
+      for (const item of body.data.items) {
+        const tr = document.createElement("tr");
+        const idCell = document.createElement("td");
+        idCell.textContent = item.id;
+        const titleCell = document.createElement("td");
+        titleCell.className = "title-cell";
+        titleCell.textContent = item.title;
+        const statusCell = document.createElement("td");
+        statusCell.appendChild(badge(item.status));
+        const quota = document.createElement("td");
+        quota.appendChild(quotaCell(item.remainingQuota, item.totalQuota));
+        tr.append(idCell, titleCell, statusCell, quota);
+        tbody.appendChild(tr);
+        const option = document.createElement("option");
+        option.value = String(item.id);
+        option.textContent = item.id + "  " + item.title;
+        select.appendChild(option);
+      }
+      if (selected) {
+        select.value = selected;
+      }
+    }
+
+    function currentIntent() {
+      return {
+        userId: document.getElementById("userId").value.trim(),
+        activityId: Number(document.getElementById("activityId").value)
+      };
+    }
+
+    async function submitSignup(reusePending) {
+      const intent = currentIntent();
+      if (!pending || !reusePending || pending.userId !== intent.userId || pending.activityId !== intent.activityId) {
+        pending = { userId: intent.userId, activityId: intent.activityId, requestId: newRequestId() };
+      }
+      showStatus("正在报名，requestId=" + pending.requestId, true);
+      let response;
+      try {
+        response = await fetch("/api/registrations", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-User-Id": pending.userId
+          },
+          body: JSON.stringify({ activityId: pending.activityId, requestId: pending.requestId })
+        });
+      } catch (error) {
+        showStatus("网络失败，重试将继续使用 requestId=" + pending.requestId, false);
+        document.getElementById("result").textContent = String(error);
+        return;
+      }
+      const body = await response.json().catch(() => ({}));
+      document.getElementById("result").textContent = JSON.stringify(body, null, 2);
+      if (response.status >= 500) {
+        showStatus("服务暂时失败，重试将继续使用 requestId=" + pending.requestId, false);
+        return;
+      }
+      pending = null;
+      if (response.ok) {
+        showStatus(response.status === 201 ? "报名成功" : "返回已有报名", true);
+        await loadActivities();
+      } else {
+        showStatus((body.code || response.status) + " " + (body.message || ""), false);
+      }
+    }
+
+    async function loadMine() {
+      const userId = document.getElementById("userId").value.trim();
+      let response;
+      try {
+        response = await fetch("/api/registrations?page=1&size=100", {
+          headers: { "X-User-Id": userId }
+        });
+      } catch (error) {
+        showStatus("查询我的报名失败：" + error, false);
+        return;
+      }
+      const body = await response.json();
+      if (!response.ok) {
+        showStatus((body.code || "") + " " + (body.message || "查询失败"), false);
+        return;
+      }
+      const tbody = document.querySelector("#registrations tbody");
+      tbody.innerHTML = "";
+      if (!body.data.items.length) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 5;
+        td.className = "empty";
+        td.textContent = "这个用户还没有报名记录";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+      }
+      for (const item of body.data.items) {
+        const tr = document.createElement("tr");
+        const cells = ["id", "activityId", "userId", "requestId", "status"].map((key) => {
+          const td = document.createElement("td");
+          if (key === "requestId") {
+            td.className = "mono";
+          }
+          if (key === "status") {
+            td.appendChild(badge(item.status));
+          } else {
+            td.textContent = item[key];
+          }
+          return td;
+        });
+        tr.append(...cells);
+        tbody.appendChild(tr);
+      }
+      showStatus("已加载 " + body.data.total + " 条报名", true);
+    }
+
+    document.getElementById("reload").addEventListener("click", () => {
+      loadActivities().catch((error) => showStatus(String(error), false));
+    });
+    document.getElementById("signup").addEventListener("click", () => submitSignup(true));
+    document.getElementById("retry").addEventListener("click", () => submitSignup(true));
+    document.getElementById("mine").addEventListener("click", () => {
+      loadMine().catch((error) => showStatus(String(error), false));
+    });
+    loadActivities().catch((error) => showStatus(String(error), false));
+  </script>
+</body>
+</html>

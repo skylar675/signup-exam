@@ -1,0 +1,40 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: signup-exam
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:signup_exam}?characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+    username: ${MYSQL_USER:signup_dev}
+    password: ${MYSQL_PASSWORD}
+    hikari:
+      maximum-pool-size: 64
+      connection-timeout: 3000
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema.sql
+      data-locations: classpath:db/data.sql
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      timeout: 300ms
+      connect-timeout: 200ms
+      repositories:
+        enabled: false
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+signup:
+  activity-cache-ttl-seconds: 60
+  fault:
+    before-insert: false
+
+logging:
+  level:
+    com.exam.signup: INFO

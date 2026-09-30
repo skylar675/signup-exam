@@ -1,0 +1,12 @@
+{
+  "activities": [
+    {"id": 1002, "totalQuota": 10, "remainingQuota": 9},
+    {"id": 1003, "totalQuota": 0, "remainingQuota": -1}
+  ],
+  "registrations": [
+    {"userId": 1101, "activityId": 1002, "requestId": "bad_1", "status": "REGISTERED"},
+    {"userId": 1101, "activityId": 1002, "requestId": "bad_2", "status": "REGISTERED"},
+    {"userId": 2202, "activityId": 1001, "requestId": "same_key", "status": "REGISTERED"},
+    {"userId": 2202, "activityId": 1005, "requestId": "same_key", "status": "REGISTERED"}
+  ]
+}
