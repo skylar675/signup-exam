@@ -269,8 +269,21 @@
       };
     }
 
+    function requireUserId(userId) {
+      if (!/^[1-9][0-9]*$/.test(userId)) {
+        showStatus("用户标识无效，请填写正整数", false);
+        document.getElementById("result").textContent = "";
+        return false;
+      }
+      return true;
+    }
+
     async function submitSignup(reusePending) {
       const intent = currentIntent();
+      if (!requireUserId(intent.userId)) {
+        pending = null;
+        return;
+      }
       if (!pending || !reusePending || pending.userId !== intent.userId || pending.activityId !== intent.activityId) {
         pending = { userId: intent.userId, activityId: intent.activityId, requestId: newRequestId() };
       }
@@ -307,6 +320,9 @@
 
     async function loadMine() {
       const userId = document.getElementById("userId").value.trim();
+      if (!requireUserId(userId)) {
+        return;
+      }
       let response;
       try {
         response = await fetch("/api/registrations?page=1&size=100", {

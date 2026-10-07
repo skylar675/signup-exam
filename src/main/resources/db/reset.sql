@@ -1,4 +1,5 @@
 DELETE FROM registration;
+ALTER TABLE registration AUTO_INCREMENT = 1;
 
 UPDATE activity
 SET title = CASE id
